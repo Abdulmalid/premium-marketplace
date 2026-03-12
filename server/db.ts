@@ -1,11 +1,20 @@
-import { eq } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  InsertUser,
+  users,
+  listings,
+  inquiries,
+  activityLogs,
+  listingStatusHistory,
+  type Listing,
+  type Inquiry,
+  type ActivityLog,
+} from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -56,8 +65,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.role = "admin";
+      updateSet.role = "admin";
     }
 
     if (!values.lastSignedIn) {
@@ -84,9 +93,155 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Listings queries
+export async function getListings(filters?: {
+  category?: string;
+  status?: string[];
+  featured?: boolean;
+  limit?: number;
+  offset?: number;
+}): Promise<Listing[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+  if (filters?.category) {
+    conditions.push(eq(listings.category, filters.category as any));
+  }
+  if (filters?.status && filters.status.length > 0) {
+    conditions.push(inArray(listings.status, filters.status as any));
+  }
+  if (filters?.featured) {
+    conditions.push(eq(listings.featured, true));
+  }
+
+  let query: any = db.select().from(listings);
+
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions));
+  }
+
+  query = query.orderBy(desc(listings.createdAt));
+
+  if (filters?.limit) {
+    query = query.limit(filters.limit);
+  }
+  if (filters?.offset) {
+    query = query.offset(filters.offset);
+  }
+
+  return await query;
+}
+
+export async function getListingById(id: string): Promise<Listing | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(listings)
+    .where(eq(listings.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function createListing(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(listings).values(data);
+}
+
+export async function updateListing(id: string, data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db
+    .update(listings)
+    .set(data)
+    .where(eq(listings.id, id));
+}
+
+// Inquiries queries
+export async function getInquiries(filters?: {
+  listingId?: string;
+  status?: string[];
+  limit?: number;
+  offset?: number;
+}): Promise<Inquiry[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+  if (filters?.listingId) {
+    conditions.push(eq(inquiries.listingId, filters.listingId));
+  }
+  if (filters?.status && filters.status.length > 0) {
+    conditions.push(inArray(inquiries.status, filters.status as any));
+  }
+
+  let query: any = db.select().from(inquiries);
+
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions));
+  }
+
+  query = query.orderBy(desc(inquiries.createdAt));
+
+  if (filters?.limit) {
+    query = query.limit(filters.limit);
+  }
+  if (filters?.offset) {
+    query = query.offset(filters.offset);
+  }
+
+  return await query;
+}
+
+export async function createInquiry(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(inquiries).values(data);
+}
+
+export async function updateInquiry(id: string, data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db
+    .update(inquiries)
+    .set(data)
+    .where(eq(inquiries.id, id));
+}
+
+// Activity logs
+export async function logActivity(data: any) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(activityLogs).values(data);
+}
+
+// Status history
+export async function recordStatusChange(
+  listingId: string,
+  oldStatus: string | null,
+  newStatus: string,
+  userId?: number,
+  reason?: string
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(listingStatusHistory).values({
+    id: crypto.randomUUID(),
+    listingId,
+    oldStatus,
+    newStatus,
+    changedBy: userId,
+    reason,
+  });
+}
