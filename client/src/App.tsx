@@ -11,6 +11,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminInventory from "./pages/AdminInventory";
 import AdminLeads from "./pages/AdminLeads";
 import AdminSettings from "./pages/AdminSettings";
+import AdminAddListing from "./pages/AdminAddListing";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -23,6 +24,7 @@ function Router() {
       <Route path={"/admin/inventory"} component={AdminInventory} />
       <Route path={"/admin/leads"} component={AdminLeads} />
       <Route path={"/admin/settings"} component={AdminSettings} />
+      <Route path={"/admin/add-listing"} component={AdminAddListing} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

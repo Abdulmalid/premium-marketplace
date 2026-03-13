@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
+import ActivityFeed from "@/components/ActivityFeed";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,37 +66,6 @@ export default function AdminDashboard() {
       </div>
     </Card>
   );
-
-  const recentActivities = [
-    {
-      id: 1,
-      action: "New listing created",
-      details: "Luxury Villa in Lekki Phase 1",
-      timestamp: "2 hours ago",
-      type: "listing",
-    },
-    {
-      id: 2,
-      action: "Inquiry received",
-      details: "From John Doe on Mercedes-Benz GLE",
-      timestamp: "1 hour ago",
-      type: "inquiry",
-    },
-    {
-      id: 3,
-      action: "Listing marked as sold",
-      details: "Commercial Space in Victoria Island",
-      timestamp: "30 minutes ago",
-      type: "status",
-    },
-    {
-      id: 4,
-      action: "New inquiry",
-      details: "From Jane Smith on Apartment in Ikoyi",
-      timestamp: "15 minutes ago",
-      type: "inquiry",
-    },
-  ];
 
   return (
     <AdminLayout>
@@ -189,27 +159,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <Card className="p-6">
-          <h3 className="text-lg font-bold mb-4">Recent Activity</h3>
-          <div className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-start justify-between pb-4 border-b border-border last:border-0">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium">{activity.action}</p>
-                    <Badge variant="outline" className="text-xs">
-                      {activity.type}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{activity.details}</p>
-                </div>
-                <p className="text-sm text-muted-foreground whitespace-nowrap ml-4">
-                  {activity.timestamp}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <ActivityFeed isLive={true} maxItems={5} />
       </div>
     </AdminLayout>
   );
