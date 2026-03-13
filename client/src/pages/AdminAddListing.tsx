@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import AdminLayout from "@/components/AdminLayout";
 import ImageUploader from "@/components/ImageUploader";
 import { Card } from "@/components/ui/card";
@@ -12,9 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, AlertCircle } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 interface ListingFormData {
   category: string;
@@ -34,7 +36,10 @@ interface ListingFormData {
 }
 
 export default function AdminAddListing() {
+  const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<ListingFormData>({
     category: "real_estate",
     subcategory: "apartment",
@@ -50,6 +55,18 @@ export default function AdminAddListing() {
     featured: false,
     internalNotes: "",
     images: [],
+  });
+
+  // tRPC mutation for creating listing
+  const createListingMutation = trpc.listings.create.useMutation({
+    onSuccess: () => {
+      toast.success("Listing created successfully!");
+      setLocation("/admin/inventory");
+    },
+    onError: (error) => {
+      setError(error.message || "Failed to create listing");
+      toast.error(error.message || "Failed to create listing");
+    },
   });
 
   const steps = [
@@ -99,14 +116,61 @@ export default function AdminAddListing() {
   };
 
   const handleSubmit = async () => {
-    // In a real app, this would call the tRPC mutation
-    console.log("Submitting listing:", formData);
-    alert("Listing created successfully!");
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      // Validate form data
+      if (!formData.title || !formData.description || !formData.locationAddress) {
+        setError("Please fill in all required fields");
+        return;
+      }
+
+      if (formData.images.length === 0) {
+        setError("Please upload at least one image");
+        return;
+      }
+
+      // Call tRPC mutation
+      await createListingMutation.mutateAsync({
+        category: formData.category as any,
+        subcategory: formData.subcategory,
+        title: formData.title,
+        description: formData.description,
+        price: formData.price ? parseInt(formData.price.toString()) : undefined,
+        priceOnRequest: formData.priceOnRequest,
+        condition: formData.condition,
+        specifications: {},
+        locationAddress: formData.locationAddress,
+        locationArea: formData.locationArea,
+        virtualTourUrl: formData.virtualTourUrl,
+        videoUrl: formData.videoUrl,
+        featured: formData.featured,
+        internalNotes: formData.internalNotes,
+        images: formData.images.map((img) => img.preview),
+      });
+    } catch (err) {
+      console.error("Error creating listing:", err);
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <AdminLayout>
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Error Message */}
+        {error && (
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Error</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold mb-2">Add New Listing</h1>
@@ -424,10 +488,11 @@ export default function AdminAddListing() {
             {currentStep === 5 && (
               <Button
                 onClick={handleSubmit}
-                className="bg-green-600 text-white hover:bg-green-700"
+                disabled={isSubmitting || createListingMutation.isPending}
+                className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
               >
                 <Check className="h-4 w-4 mr-2" />
-                Publish Listing
+                {isSubmitting || createListingMutation.isPending ? "Publishing..." : "Publish Listing"}
               </Button>
             )}
           </div>
