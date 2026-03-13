@@ -7,6 +7,10 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import HomePage from "./pages/Home";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminInventory from "./pages/AdminInventory";
+import AdminLeads from "./pages/AdminLeads";
+import AdminSettings from "./pages/AdminSettings";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -15,6 +19,10 @@ function Router() {
       <Route path={"/"} component={HomePage} />
       <Route path={"/listings"} component={Listings} />
       <Route path={"/listings/:id"} component={ListingDetail} />
+      <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/admin/inventory"} component={AdminInventory} />
+      <Route path={"/admin/leads"} component={AdminLeads} />
+      <Route path={"/admin/settings"} component={AdminSettings} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

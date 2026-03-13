@@ -11,7 +11,7 @@
 - [x] Set up Row Level Security (RLS) policies
 - [x] Create indexes for performance optimization
 - [x] Build database query helpers in server/db.ts
-- [ ] Create tRPC procedures for listings, inquiries, and admin operations
+- [x] Create tRPC procedures for listings, inquiries, and admin operations
 
 ## Phase 3: Public Pages
 - [x] Landing page with hero section, featured listings, stats counter, testimonials
@@ -21,14 +21,14 @@
 - [x] Public layout with navigation and footer
 
 ## Phase 4: Admin Dashboard
-- [ ] Admin authentication with role-based access control
-- [ ] Admin layout with sidebar navigation and top bar
-- [ ] Dashboard home with analytics cards and charts
-- [ ] Inventory management list with data table and bulk actions
-- [ ] Add new listing wizard (5-step form with image uploader)
-- [ ] Edit listing page with change log and version history
-- [ ] Leads management page with status pipeline and assignment
-- [ ] Settings page for business profile and configuration
+- [x] Admin authentication with role-based access control
+- [x] Admin layout with sidebar navigation and top bar
+- [x] Dashboard home with analytics cards and charts
+- [x] Inventory management list with data table and bulk actions
+- [x] Add new listing wizard (5-step form with image uploader)
+- [x] Edit listing page with change log and version history
+- [x] Leads management page with status pipeline and assignment
+- [x] Settings page for business profile and configuration
 
 ## Phase 5: Core Components
 - [ ] StatusBadge component with color coding
