@@ -1,6 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm vite build",
+  "outputDirectory": "dist/public",
+  "functions": {
+    "api/[[...route]].ts": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
   "buildCommand": "pnpm vite build",
   "installCommand": "pnpm install --frozen-lockfile",
   "rewrites": [
